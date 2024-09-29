@@ -65,10 +65,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "tip-calculator:build:production"
+              "buildTarget": "tip-calculator:build:production"
             },
             "development": {
-              "browserTarget": "tip-calculator:build:development"
+              "buildTarget": "tip-calculator:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -76,7 +76,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "tip-calculator:build"
+            "buildTarget": "tip-calculator:build"
           }
         },
         "test": {
