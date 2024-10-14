@@ -1,11 +1,11 @@
-<div class="container flex justify-center items-center h-full m-auto">
-  <div class="w-full max-w-5xl h-full flex flex-col justify-center">
+<div class="container flex justify-center items-center md:h-full m-auto">
+  <div class="w-full max-md:p-4 max-w-5xl md:h-full flex flex-col justify-center">
     <h1
       class="text-2xl font-bold text-center text-wrap break-words max-w-[160px] uppercase mx-auto tracking-[20px] leading-[40px] text-primary">
       Splitter
     </h1>
     <div class="p-6 px-8 mt-10 bg-white rounded-3xl shadow">
-      <div class="grid grid-cols-2 gap-x-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
         <form [formGroup]="billForm" (ngSubmit)="onSubmit()">
           <div class="mb-11">
             <label for="first_name" class="block mb-2 text-sm  text-primary font-bold">Bill</label>
@@ -32,7 +32,7 @@
             </small>
             }
             @if(billForm.get('billAmount')?.hasError('min')){
-            <small>
+            <small class="text-red-700">
               Bill amount must be greater than zero.
             </small>
             }
@@ -42,10 +42,10 @@
             <label for="first_name" class="block mb-2 text-sm  text-primary font-bold">Select Tip %</label>
             <div class="grid grid-cols-3 gap-4">
               @for(value of predefinedValues; track value) {
-              <button  [ngClass]="{'bg-primary-500': selectedPredefinedTip === value}" class="p-2.5 rounded-lg bg-primary text-white font-bold text-2xl" type="button"
+              <button  [ngClass]="{'bg-primary-500': selectedPredefinedTip === value}" class="p-2.5 rounded-lg bg-primary text-white font-bold text-xl lg:text-2xl" type="button"
                 (click)="onButtonClick(value)">{{value}}%</button>
               }
-              <button class="p-2.5 bg-[#F3F8FC] text-2xl font-bold text-primary" type="button"
+              <button class="p-2.5 bg-[#F3F8FC] text-xl lg:text-2xl font-bold text-primary" type="button"
                 (click)="onCustom()">Custom</button>
             </div>
             @if(billForm.hasError('tipRequired') && billForm.get('predefinedValue')?.touched){
