@@ -39,21 +39,25 @@ export class AppComponent implements OnInit{
 
 
   ngOnInit(): void {
-    console.log(this.billForm);
     this.billForm.valueChanges.subscribe(() => {
       this.onSubmit();
     });
   }
   onButtonClick(value: number): void {
+    this.customValue = false;
+    const tipControl = this.billForm.get('tipPercentage');
+    if (tipControl) {
+      tipControl.setValue(0);
+    }
     this.selectedPredefinedTip = value;
     this.billForm.patchValue({
       predefinedValue: value
     });
-    console.log(this.billForm.get('tipPercentage'));
   }
 
   onCustom() {
     this.customValue = !this.customValue;
+    this.selectedPredefinedTip = 0;
   }
   reset() {
     this.billForm.reset();
@@ -71,7 +75,6 @@ export class AppComponent implements OnInit{
       this.splitPerPerson = this.splitAmount / peopleQty;
       this.totalAmount = (billAmount / peopleQty) + this.splitPerPerson;
     }
-    console.log(this.billForm.value);
   }
 
 }

@@ -45,7 +45,7 @@
               <button  [ngClass]="{'bg-primary-500': selectedPredefinedTip === value}" class="p-2.5 rounded-lg bg-primary text-white font-bold text-xl lg:text-2xl" type="button"
                 (click)="onButtonClick(value)">{{value}}%</button>
               }
-              <button class="p-2.5 bg-[#F3F8FC] text-xl lg:text-2xl font-bold text-primary" type="button"
+              <button class="p-2.5 bg-[#F3F8FC] text-xl lg:text-2xl font-bold text-primary" [ngClass]="{'bg-primary-500 rounded-lg text-white': customValue}" type="button"
                 (click)="onCustom()">Custom</button>
             </div>
             @if(billForm.hasError('tipRequired') && billForm.get('predefinedValue')?.touched){
