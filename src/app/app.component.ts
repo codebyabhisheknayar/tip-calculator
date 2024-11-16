@@ -31,22 +31,23 @@ export class AppComponent {
 
   billForm = new FormGroup({
     billAmount: new FormControl<number | null>(null, [
-      Validators.required, Validators.min(1)]),
-    tipPercentage: new FormControl<number | null>(null, [Validators.min(0.01)]),
+      Validators.required, Validators.min(1), Validators.pattern(/^\d+(\.\d{1,2})?$/)]),
+    tipPercentage: new FormControl<number | null>(null, [Validators.min(0.01), Validators.pattern(/^\d+(\.\d{1,2})?$/)]),
     predefinedValue: new FormControl<number | null>(null),
     peopleQty: new FormControl<number | null>(null, [
-      Validators.required, Validators.min(1)]),
+      Validators.required, Validators.min(1), Validators.pattern(/^\d+(\.\d{1,2})?$/)]),
   }, { validators: tipRequiredValidator });
 
   readonly billFormValueSignal = toSignal(this.billForm.valueChanges);
 
   splitAmount = computed(() => {
     const formValues = this.billFormValueSignal();
-    if (!formValues?.billAmount || !formValues?.predefinedValue)
+    if (!formValues?.billAmount || (!formValues?.tipPercentage && !formValues?.predefinedValue)) {
       return 0;
-    const tipPercentage = formValues.tipPercentage || formValues.predefinedValue || 0;
+    }
+    const tipPercentage = formValues?.tipPercentage ?? formValues?.predefinedValue ?? 0;
     return (formValues.billAmount * tipPercentage) / 100;
-  })
+  });
 
   splitPerPerson = computed(() => {
     const formValues = this.billFormValueSignal();
@@ -84,13 +85,12 @@ export class AppComponent {
     this.customValue.set(false);
     this.updatePredefinedTip(value);
     this.billForm.patchValue({
-      tipPercentage: 0,
-      predefinedValue: value
+      predefinedValue: value,
+      tipPercentage: null,
     });
   }
 
   onCustom(): void {
-    console.log(this.customValue());
     this.customValue.set(!this.customValue());
     this.updatePredefinedTip(null);
   }
