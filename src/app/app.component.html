@@ -6,7 +6,7 @@
     </h1>
     <div class="p-6 px-8 mt-10 bg-white rounded-3xl shadow">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
-        <form [formGroup]="billForm" (ngSubmit)="onSubmit()">
+        <form [formGroup]="billForm">
           <div class="mb-11">
             <label for="first_name" class="block mb-2 text-sm  text-primary font-bold">Bill</label>
             <div class="relative">
@@ -42,10 +42,10 @@
             <label for="first_name" class="block mb-2 text-sm  text-primary font-bold">Select Tip %</label>
             <div class="grid grid-cols-3 gap-4">
               @for(value of predefinedValues; track value) {
-              <button  [ngClass]="{'bg-primary-500': selectedPredefinedTip === value}" class="p-2.5 rounded-lg bg-primary text-white font-bold text-xl lg:text-2xl" type="button"
+              <button  [ngClass]="{'bg-primary-500': selectedPredefinedTip() === value}" class="p-2.5 rounded-lg bg-primary text-white font-bold text-xl lg:text-2xl" type="button"
                 (click)="onButtonClick(value)">{{value}}%</button>
               }
-              <button class="p-2.5 bg-[#F3F8FC] text-xl lg:text-2xl font-bold text-primary" [ngClass]="{'bg-primary-500 rounded-lg text-white': customValue}" type="button"
+              <button class="p-2.5 bg-[#F3F8FC] text-xl lg:text-2xl font-bold text-primary" [ngClass]="{'bg-primary-500 rounded-lg text-white': customValue()}" type="button"
                 (click)="onCustom()">Custom</button>
             </div>
             @if(billForm.hasError('tipRequired') && billForm.get('predefinedValue')?.touched){
@@ -58,7 +58,7 @@
             </div>
             }
           </div>
-          @if(customValue){
+          @if(customValue()){
           <div class="mb-11">
             <label for="first_name" class="block mb-2 text-sm  text-primary font-bold">Tip
               Percentage</label>
@@ -138,11 +138,11 @@
                     <path
                       d="M4 3.06h2.726c1.22 0 2.12.575 2.325 1.724H4v1.051h5.051C8.855 7.001 8 7.558 6.788 7.558H4v1.317L8.437 14h2.11L6.095 8.884h.855c2.316-.018 3.465-1.476 3.688-3.049H12V4.784h-1.345c-.08-.778-.357-1.335-.793-1.732H12V2H4z" />
                   </svg>
-                  {{splitPerPerson | number : '.2-2'}}
+                  {{splitPerPerson() | number : '.2-2'}}
                 </h3>
               </div>
-              <div class="mb-3 flex justify-between items-center">
-                <p class="text-white text-sm font-medium">Total
+              <div class="mb-10 flex justify-between items-center">
+                <p class="text-white text-sm font-medium">Total Tip
                   <span class="text-white/50 block">/ person</span>
                 </p>
                 <h3 class="text-primary-500 text-4xl font-bold flex items-center">
@@ -150,9 +150,21 @@
                     class="bi bi-currency-rupee" viewBox="0 0 16 16">
                     <path
                       d="M4 3.06h2.726c1.22 0 2.12.575 2.325 1.724H4v1.051h5.051C8.855 7.001 8 7.558 6.788 7.558H4v1.317L8.437 14h2.11L6.095 8.884h.855c2.316-.018 3.465-1.476 3.688-3.049H12V4.784h-1.345c-.08-.778-.357-1.335-.793-1.732H12V2H4z" />
-                  </svg>{{totalAmount | number : '.2-2'}}
+                  </svg>{{totalAmount() | number : '.2-2'}}
                 </h3>
               </div>
+                            <div class="mb-3 flex justify-between items-center">
+                              <p class="text-white text-sm font-medium">Total Bill
+                                <span class="text-white/50 block">/ amount</span>
+                              </p>
+                              <h3 class="text-primary-500 text-4xl font-bold flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-currency-rupee"
+                                  viewBox="0 0 16 16">
+                                  <path
+                                    d="M4 3.06h2.726c1.22 0 2.12.575 2.325 1.724H4v1.051h5.051C8.855 7.001 8 7.558 6.788 7.558H4v1.317L8.437 14h2.11L6.095 8.884h.855c2.316-.018 3.465-1.476 3.688-3.049H12V4.784h-1.345c-.08-.778-.357-1.335-.793-1.732H12V2H4z" />
+                                </svg>{{totalBill() | number : '.2-2'}}
+                              </h3>
+                            </div>
             </div>
             <div class="w-full">
               <button (click)="reset()" [disabled]="!billForm.valid" [ngClass]="{'bg-primary-600': billForm.valid}"

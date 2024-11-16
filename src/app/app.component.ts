@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-
+import { CommonModule } from '@angular/common';
+import { Component, effect,signal,computed } from '@angular/core';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 export function tipRequiredValidator(control: AbstractControl): ValidationErrors | null {
   const predefinedValue = control.get('predefinedValue')?.value;
@@ -12,69 +13,92 @@ export function tipRequiredValidator(control: AbstractControl): ValidationErrors
   return null;
 }
 @Component({
+  standalone: true,
   selector: 'app-root',
+  imports: [CommonModule, ReactiveFormsModule ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
 
 
-export class AppComponent implements OnInit{
+export class AppComponent {
   title = 'tip-calculator';
-  splitAmount = 0;
-  totalAmount= 0;
-  splitPerPerson= 0;
-  customValue = false;
+
+  customValue = signal(false);
+  selectedPredefinedTip = signal<number | null>(null);
+
   predefinedValues: number[] = [5, 10, 15, 25, 50];
-  selectedPredefinedTip: number | null = null;
 
   billForm = new FormGroup({
     billAmount: new FormControl<number | null>(null, [
-      Validators.required, Validators.min(0.01)]),
+      Validators.required, Validators.min(1)]),
     tipPercentage: new FormControl<number | null>(null, [Validators.min(0.01)]),
     predefinedValue: new FormControl<number | null>(null),
     peopleQty: new FormControl<number | null>(null, [
       Validators.required, Validators.min(1)]),
   }, { validators: tipRequiredValidator });
 
+  readonly billFormValueSignal = toSignal(this.billForm.valueChanges);
 
+  splitAmount = computed(() => {
+    const formValues = this.billFormValueSignal();
+    if (!formValues?.billAmount || !formValues?.predefinedValue)
+      return 0;
+    const tipPercentage = formValues.tipPercentage || formValues.predefinedValue || 0;
+    return (formValues.billAmount * tipPercentage) / 100;
+  })
 
-  ngOnInit(): void {
-    this.billForm.valueChanges.subscribe(() => {
-      this.onSubmit();
+  splitPerPerson = computed(() => {
+    const formValues = this.billFormValueSignal();
+    if (!formValues?.peopleQty || this.splitAmount() === 0) return 0;
+    return this.splitAmount() / formValues.peopleQty;
+  })
+
+  totalAmount = computed(() => {
+    const formValues = this.billFormValueSignal();
+    if (!formValues?.peopleQty || !formValues?.billAmount) return 0;
+    return (formValues.billAmount / formValues.peopleQty) + this.splitPerPerson();
+  })
+
+  totalBill = computed(() => {
+    const formValues = this.billFormValueSignal();
+    if (!formValues?.billAmount || this.totalAmount() === 0) return 0;
+    return (formValues.billAmount + this.totalAmount())
+  })
+  constructor() {
+    effect(() => {
+      const formValues = this.billFormValueSignal();
+      if (formValues) {
+        const predefinedValue = formValues.predefinedValue ?? null;
+        this.updatePredefinedTip(predefinedValue);
+      }
     });
   }
-  onButtonClick(value: number): void {
-    this.customValue = false;
-    const tipControl = this.billForm.get('tipPercentage');
-    if (tipControl) {
-      tipControl.setValue(0);
+
+  updatePredefinedTip(value: number | null) {
+    if (this.selectedPredefinedTip() !== value) {
+      this.selectedPredefinedTip.set(value);
     }
-    this.selectedPredefinedTip = value;
+  }
+  onButtonClick(value: number): void {
+    this.customValue.set(false);
+    this.updatePredefinedTip(value);
     this.billForm.patchValue({
+      tipPercentage: 0,
       predefinedValue: value
     });
   }
 
-  onCustom() {
-    this.customValue = !this.customValue;
-    this.selectedPredefinedTip = 0;
+  onCustom(): void {
+    console.log(this.customValue());
+    this.customValue.set(!this.customValue());
+    this.updatePredefinedTip(null);
   }
   reset() {
     this.billForm.reset();
-    this.customValue = false;
-    this.splitAmount = 0;
-    this.splitPerPerson = 0;
-    this.totalAmount = 0;
+    this.customValue.set(false);
+    this.updatePredefinedTip(null);
   }
-  onSubmit() {
-    const billAmount = this.billForm.get('billAmount')?.value;
-    const tipPercentage = this.billForm.get('tipPercentage')?.value || this.billForm.get('predefinedValue')?.value;
-    const peopleQty = Number(this.billForm.get('peopleQty')?.value);
-    if (billAmount && tipPercentage && peopleQty > 0) {
-      this.splitAmount = (billAmount * tipPercentage) / 100;
-      this.splitPerPerson = this.splitAmount / peopleQty;
-      this.totalAmount = (billAmount / peopleQty) + this.splitPerPerson;
-    }
-  }
+
 
 }
