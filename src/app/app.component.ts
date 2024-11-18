@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect,signal,computed } from '@angular/core';
+import { Component, effect, signal, computed } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 
@@ -15,7 +15,7 @@ export function tipRequiredValidator(control: AbstractControl): ValidationErrors
 @Component({
   standalone: true,
   selector: 'app-root',
-  imports: [CommonModule, ReactiveFormsModule ],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
@@ -34,7 +34,7 @@ export class AppComponent {
       Validators.required, Validators.min(1), Validators.pattern(/^\d+(\.\d{1,2})?$/)]),
     tipPercentage: new FormControl<number | null>(null, [Validators.min(0.01), Validators.pattern(/^\d+(\.\d{1,2})?$/)]),
     predefinedValue: new FormControl<number | null>(null),
-    peopleQty: new FormControl<number | null>(null, [
+    peopleQty: new FormControl<number>(1, [
       Validators.required, Validators.min(1), Validators.pattern(/^\d+(\.\d{1,2})?$/)]),
   }, { validators: tipRequiredValidator });
 
@@ -54,6 +54,11 @@ export class AppComponent {
     if (!formValues?.peopleQty || this.splitAmount() === 0) return 0;
     return this.splitAmount() / formValues.peopleQty;
   })
+  splitExcludeTip = computed(() => {
+    const formValues = this.billFormValueSignal();
+    if (!formValues?.peopleQty || !formValues?.billAmount) return 0;
+    return (formValues.billAmount / formValues.peopleQty);
+  })
 
   totalAmount = computed(() => {
     const formValues = this.billFormValueSignal();
@@ -63,10 +68,26 @@ export class AppComponent {
 
   totalBill = computed(() => {
     const formValues = this.billFormValueSignal();
-    if (!formValues?.billAmount || this.totalAmount() === 0) return 0;
-    return (formValues.billAmount + this.totalAmount())
+    if (!formValues?.billAmount) return 0;
+    const tipPercentage = formValues?.tipPercentage ?? formValues?.predefinedValue ?? 0;
+    if (isFinite(formValues.billAmount) && isFinite(tipPercentage)) {
+      return formValues.billAmount + (formValues.billAmount * tipPercentage / 100);
+    } else {
+      return 0;
+    }
   })
+
+  isDisabled = computed(() => {
+    const isDisabledValue = this.billFormValueSignal();
+    return !(isDisabledValue?.billAmount || isDisabledValue?.predefinedValue || isDisabledValue?.tipPercentage);
+  });
+  resetButtonClass = computed(() => {
+    const resetBillAmountSet = this.billFormValueSignal();
+    return (resetBillAmountSet?.billAmount || resetBillAmountSet?.tipPercentage || resetBillAmountSet?.predefinedValue) ? 'bg-primary-600' : 'bg-primary-800';
+  })
+
   constructor() {
+
     effect(() => {
       const formValues = this.billFormValueSignal();
       if (formValues) {
@@ -74,6 +95,7 @@ export class AppComponent {
         this.updatePredefinedTip(predefinedValue);
       }
     });
+
   }
 
   updatePredefinedTip(value: number | null) {
@@ -95,10 +117,13 @@ export class AppComponent {
     this.updatePredefinedTip(null);
   }
   reset() {
-    this.billForm.reset();
+    this.billForm.reset({
+      billAmount: 0,
+      tipPercentage: null,
+      predefinedValue: null,
+      peopleQty: 1
+    });
     this.customValue.set(false);
     this.updatePredefinedTip(null);
   }
-
-
 }
